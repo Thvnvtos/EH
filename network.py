@@ -1,5 +1,5 @@
 from tensorflow import keras 
-
+import tensorflow as tf
 
 
 class NetCNN1D(keras.Model):
@@ -124,3 +124,32 @@ class NetCNN2D_CSP(keras.Model):
     @classmethod
     def from_config(cls, config):
         return cls(**config)
+    
+
+
+
+def build_functional_cnn2D(n_classes, input_shape):
+    inputs = tf.keras.Input(shape=input_shape)
+    
+    # cnn1
+    x = tf.keras.layers.Conv2D(filters=8, kernel_size=(3, 11), strides=(1, 7), padding='same')(inputs)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU(max_value=1000.0)(x)
+
+    # cnn2
+    x = tf.keras.layers.Conv2D(filters=16, kernel_size=(3, 7), strides=(1, 5), padding='same')(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU(max_value=1000.0)(x)
+
+    # GAP
+    #x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    
+    # FC
+    x = tf.keras.layers.Flatten()(x)
+    x = tf.keras.layers.Dense(128)(x)
+    x = tf.keras.layers.ReLU(max_value=1000.0)(x)
+    x = tf.keras.layers.Dropout(0.1)(x)
+    outputs = tf.keras.layers.Dense(n_classes)(x)
+    
+    functional_model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    return functional_model
