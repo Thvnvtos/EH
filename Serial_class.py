@@ -83,7 +83,7 @@ class serial_class():
             print(f"  Product     : {port.product}")
             print()  # Ligne vide entre chaque port
 
-            if "CP210x" in port.description: # si plusieur port com prendre celui qui se nomme CP210x
+            if "CP21" in port.description: # si plusieur port com prendre celui qui se nomme CP210x
                 com = port.device  # 'COM'
         print("port :", com)
         self.serialPort = serial.Serial(
@@ -106,32 +106,36 @@ class serial_class():
         self.serialPort.flush()
         while (self._running):
             # Wait until there is data waiting in the serial buffer
-            if (self.serialPort.in_waiting > 0):
-                # Read data out of the buffer until a carraige return / new line is found
-                serialString = self.serialPort.read_until(b'\n')
-                # print(serialString)
-                self.bytes_data.append(serialString)
-                if serialString[2:4] == b'nb':
-                    self.read_header(serialString)
-                if serialString[2:4] == b'ts':
-                    t, d = self.read_line(serialString)
-                    ligneData =np.array_split(self.adu_to_data(d, self.nb_elec), 4)# extract ligne data
-                    self.data.extend(ligneData)
-                    self.time_adu.extend([t] * 4)
-                    self.vecteur_trigger.extend([0] * 4)
-                    self.timestamp.extend([time.time()] * 4)
-                    tpsEEG0 = [t]*4
-                    tpsEEG1 = tpsEEG0
-                    tpsEEG2 = tpsEEG0
-                    tpsEEG3 = tpsEEG0
+            try:
+                if (self.serialPort.in_waiting > 0):
+                    # Read data out of the buffer until a carraige return / new line is found
+                    serialString = self.serialPort.read_until(b'\n')
+                    # print(serialString)
+                    self.bytes_data.append(serialString)
+                    if serialString[2:4] == b'nb':
+                        self.read_header(serialString)
+                    if serialString[2:4] == b'ts':
+                        t, d = self.read_line(serialString)
+                        ligneData =np.array_split(self.adu_to_data(d, self.nb_elec), 4)# extract ligne data
+                        self.data.extend(ligneData)
+                        self.time_adu.extend([t] * 4)
+                        self.vecteur_trigger.extend([0] * 4)
+                        self.timestamp.extend([time.time()] * 4)
+                        tpsEEG0 = [t]*4
+                        tpsEEG1 = tpsEEG0
+                        tpsEEG2 = tpsEEG0
+                        tpsEEG3 = tpsEEG0
 
-                    tps = [tpsEEG0 , tpsEEG1 , tpsEEG2 , tpsEEG3]
+                        tps = [tpsEEG0 , tpsEEG1 , tpsEEG2 , tpsEEG3]
 
-                    #Envoi des data EEG pour le Main
-                    try:
-                        self.data_queue.put((ligneData,tpsEEG0), timeout=1)  # Mettre les donnees dans la queue avec un timeout
-                    except queue.Full:
-                        print("Queue is full, dropping data")
+                        #Envoi des data EEG pour le Main
+                        try:
+                            self.data_queue.put((ligneData,tpsEEG0), timeout=1)  # Mettre les donnees dans la queue avec un timeout
+                        except queue.Full:
+                            print("Queue is full, dropping data")
+            except Exception as e:
+                # Code that handles the exception
+                print(f"Bad Reception: {e}")
 
     #Lecture entete de la config du casque
     def read_header(self, tram):
