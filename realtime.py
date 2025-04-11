@@ -110,7 +110,10 @@ if __name__ == '__main__':
 
 
                 if len(EEGraw_stack) > 500:
-                    last_epoch_raw = EEGraw_stack[-500:]
+                    if model_type == '2D':
+                        last_epoch_raw = EEGraw_stack[-250:]
+                    elif model_type == '2D_GAP':
+                        last_epoch_raw = EEGraw_stack[-500:]
                     # Preprocess raw data
                     X = np.array(last_epoch_raw)
                     X = X.transpose(1,0)                    
