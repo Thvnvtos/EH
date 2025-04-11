@@ -67,7 +67,8 @@ class NetCNN2D_CSP_GAP(keras.Model):
 
 
 # Kernel size should be 3, 5, 7 and symmetric
-# strides should be 1, 2 or 3
+# strides should be 1, 2 or 3 symmetric
+# Input dimension cannot be smaller than 5
 
 class NetCNN2D_CSP(keras.Model):
     def __init__(self, n_classes, **kwargs):

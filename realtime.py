@@ -136,6 +136,9 @@ if __name__ == '__main__':
                         X_LR = ((X_LR - X_LR.min()) / (X_LR.max() - X_LR.min()) * 255).astype(np.uint8)
                         X_UD = ((X_UD - X_UD.min()) / (X_UD.max() - X_UD.min()) * 255).astype(np.uint8)
 
+                        X_LR = np.pad(X_LR, ((4, 4), (0, 0)), mode='constant', constant_values=0)
+                        X_UD = np.pad(X_UD, ((4, 4), (0, 0)), mode='constant', constant_values=0)
+
                         out_LR = np.argmax(models_dict['LR'].forward(X_LR))
                         out_UD = np.argmax(models_dict['UD'].forward(X_UD))
                     
