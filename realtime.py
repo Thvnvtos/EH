@@ -32,6 +32,7 @@ models_dict = {}
 csp_dict = {}
 
 
+
 if model_type == '2D_GAP':
     print("================================= \n\n Using CPU Mode ...  \n")
     for naming in models_naming:
@@ -67,7 +68,6 @@ elif model_type == '2D':
         models_dict[naming].map(chip, hw_only = True)
 
     print("=> All models successfully mapped to Akida Chip \n")
-
 
 time.sleep(2)
 
@@ -114,6 +114,7 @@ if __name__ == '__main__':
                         last_epoch_raw = EEGraw_stack[-500:]
                     # Preprocess raw data
                     X = np.array(last_epoch_raw)
+                    
                     X = X.transpose(1,0)                    
                     X = filter_rawEEG(X, 0.5, 35)
                     X = np.expand_dims(X, 0)
@@ -162,10 +163,10 @@ if __name__ == '__main__':
 
                         chip.soc.power_measurement_enabled = True
                         pred = models_dict[prediction].predict(X_final)
-                        print(models_dict['LR'].statistics)
+                        #print(models_dict[prediction].statistics)
                         
                         floor_power = chip.soc.power_meter.floor
-                        print(f'Floor power: {floor_power:.2f} mW  (Idle power consumption)')
+                        #print(f'Floor power: {floor_power:.2f} mW  (Idle power consumption)')
                         
                         out = np.argmax(pred)
                               
@@ -177,14 +178,15 @@ if __name__ == '__main__':
                     direction = prediction[0]*(1 - out) + prediction[1]*(out)
                     if direction == 'U': direction = 'up'
                     elif direction == 'D': direction = 'down'
-                    if direction == 'L': direction = 'left'
-                    if direction == 'R': direction = 'right'
+                    elif direction == 'L': direction = 'left'
+                    elif direction == 'R': direction = 'right'
 
-                    command = 'cls' if os.name == 'nt' else 'clear'
+                    #command = 'cls' if os.name == 'nt' else 'clear'
                     #os.system(command)
-                    print("===================================================================\n")
+                    
+                    #print("===================================================================\n")
                     print(f"Final Prediction = {direction} | intermediary pred = {prediction}")
-                    print("\n===================================================================\n")
+                    #print("\n===================================================================\n")
                     requests.post(f"{server_ip}/push_direction", json={"direction": direction, "confidence": 1.0})
 
 

@@ -39,13 +39,16 @@ def session_dataset(config: Config, session_ID: str) -> Tuple[np.ndarray, np.nda
 
     X = filter_rawEEG(X, config.lowcut, config.highcut)
 
-    return X, y
+    return X, y 
 
 
 
 
 
 def slice_EEG_epoch(config: Config, X: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    '''
+    
+    '''
 
     stride = int(config.stride * 250)
     window_size = int(config.window_size * 250)
