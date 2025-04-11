@@ -53,6 +53,10 @@ def train_evalute(config, X_train, Y_train, X_valid, Y_valid, model, choose_on =
     if config.model_type in ['2D', '2D_GAP']:
         X_train = np.expand_dims(X_train, 3)
         X_valid = np.expand_dims(X_valid, 3)
+
+        X_train = np.pad(X_train, ((0, 0), (2, 2), (0, 0), (0, 0)), mode='constant', constant_values=0)
+        X_valid = np.pad(X_valid,  ((0, 0), (2, 2), (0, 0), (0, 0)), mode='constant', constant_values=0)
+
     else:
         X_train = X_train.transpose(0, 2, 1)
         X_valid = X_valid.transpose(0, 2, 1)

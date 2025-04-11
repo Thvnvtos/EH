@@ -67,7 +67,7 @@ class NetCNN2D_CSP_GAP(keras.Model):
 
 
 # Kernel size should be 3, 5, 7 and symmetric
-# strides should be 1, 2 or 3 symmetric
+# strides should be 1, 2 or 3 symmetric (input) only 1,2 intermediary
 # Input dimension cannot be smaller than 5
 # Max input size is 256
 
@@ -87,7 +87,7 @@ class NetCNN2D_CSP(keras.Model):
 
         self.cnn2 = keras.Sequential(
             [
-                keras.layers.Conv2D(filters=16, kernel_size=(7,7), strides=(3,3), padding='same'),
+                keras.layers.Conv2D(filters=16, kernel_size=(7,7), strides=(2,2), padding='same'),
                 keras.layers.BatchNormalization(),
                 keras.layers.ReLU(max_value=1000.0)
             ], name='cnn2')
@@ -136,7 +136,7 @@ def build_functional_cnn2D(n_classes, input_shape):
     x = tf.keras.layers.ReLU(max_value=1000.0)(x)
 
     # cnn2
-    x = tf.keras.layers.Conv2D(filters=16, kernel_size=(7, 7), strides=(3, 3), padding='same')(x)
+    x = tf.keras.layers.Conv2D(filters=16, kernel_size=(7, 7), strides=(2, 2), padding='same')(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU(max_value=1000.0)(x)
     
