@@ -64,7 +64,7 @@ elif model_type == '2D':
 
 
     for naming in models_naming:
-        models_dict[naming].map(chip)
+        models_dict[naming].map(chip, hw_only = True)
 
     print("=> All models successfully mapped to Akida Chip \n")
 
@@ -96,6 +96,8 @@ if __name__ == '__main__':
 
 
     EEGraw_stack = []
+
+    chip.soc.power_measurement_enabled = True
 
     try:
         while True:
@@ -163,9 +165,18 @@ if __name__ == '__main__':
                     if direction == 'L': direction = 'left'
                     if direction == 'R': direction = 'right'
 
+                    command = 'cls' if os.name == 'nt' else 'clear'
+                    os.system(command)
+                    print("===================================================================\n")
                     print(f"Final Prediction = {direction} | intermediary pred = {prediction}")
+                    print("\n===================================================================\n")
                     requests.post(f"{server_ip}/push_direction", json={"direction": direction, "confidence": 1.0})
 
+                    if model_type == '2D':
+                        floor_power = chip.soc.power_meter.floor
+                        print(f'Floor power: {floor_power:.2f} mW  (Idle power consumption)')
+                        # Retrieve statistics
+                        print(models_dict['LR'].statistics)
 
 
                     # Clean temp raw EEG stack 
