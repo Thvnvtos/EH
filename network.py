@@ -70,6 +70,7 @@ class NetCNN2D_CSP_GAP(keras.Model):
 # strides should be 1, 2 or 3 symmetric (input) only 1,2 intermediary
 # Input dimension cannot be smaller than 5
 # Max input size is 256
+# convolution stride 2 only supported for 3x3
 
 class NetCNN2D_CSP(keras.Model):
     def __init__(self, n_classes, **kwargs):
@@ -87,7 +88,14 @@ class NetCNN2D_CSP(keras.Model):
 
         self.cnn2 = keras.Sequential(
             [
-                keras.layers.Conv2D(filters=16, kernel_size=(7,7), strides=(2,2), padding='same'),
+                keras.layers.Conv2D(filters=16, kernel_size=(3,3), strides=(2,2), padding='same'),
+                keras.layers.BatchNormalization(),
+                keras.layers.ReLU(max_value=1000.0)
+            ], name='cnn2')
+        
+        self.cnn3 = keras.Sequential(
+            [
+                keras.layers.Conv2D(filters=16, kernel_size=(3,3), strides=(2,2), padding='same'),
                 keras.layers.BatchNormalization(),
                 keras.layers.ReLU(max_value=1000.0)
             ], name='cnn2')
@@ -108,6 +116,7 @@ class NetCNN2D_CSP(keras.Model):
     def call(self, x):
         temp =self.cnn1(x)
         temp = self.cnn2(temp)
+        temp = self.cnn3(temp)
         temp = self.fc(temp)
         
         return temp
@@ -136,7 +145,12 @@ def build_functional_cnn2D(n_classes, input_shape):
     x = tf.keras.layers.ReLU(max_value=1000.0)(x)
 
     # cnn2
-    x = tf.keras.layers.Conv2D(filters=16, kernel_size=(7, 7), strides=(2, 2), padding='same')(x)
+    x = tf.keras.layers.Conv2D(filters=16, kernel_size=(3, 3), strides=(2, 2), padding='same')(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU(max_value=1000.0)(x)
+
+    # cnn3
+    x = tf.keras.layers.Conv2D(filters=16, kernel_size=(3, 3), strides=(2, 2), padding='same')(x)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU(max_value=1000.0)(x)
     
