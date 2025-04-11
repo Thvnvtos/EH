@@ -97,8 +97,6 @@ if __name__ == '__main__':
 
     EEGraw_stack = []
 
-    chip.soc.power_measurement_enabled = True
-
     try:
         while True:
             while not serial_flux.data_queue.empty():
@@ -162,7 +160,16 @@ if __name__ == '__main__':
                         X_final = ((X_final - X_final.min()) / (X_final.max() - X_final.min()) * 255).astype(np.uint8)
                         X_final =np.pad(X_final, ((0, 0), (2, 2), (0, 0), (0, 0)), mode='constant', constant_values=0)
 
-                        out = np.argmax(models_dict[prediction].forward(X_final))
+                        chip.soc.power_measurement_enabled = True
+                        pred = models_dict[prediction].predict(X_final)
+                        print(models_dict['LR'].statistics)
+                        
+                        floor_power = chip.soc.power_meter.floor
+                        print(f'Floor power: {floor_power:.2f} mW  (Idle power consumption)')
+                        
+                        out = np.argmax(pred)
+                              
+                    
                     elif model_type == '2D_GAP':
                         out = np.argmax(models_dict[prediction](X_final))
 
@@ -180,11 +187,6 @@ if __name__ == '__main__':
                     print("\n===================================================================\n")
                     requests.post(f"{server_ip}/push_direction", json={"direction": direction, "confidence": 1.0})
 
-                    if model_type == '2D':
-                        floor_power = chip.soc.power_meter.floor
-                        print(f'Floor power: {floor_power:.2f} mW  (Idle power consumption)')
-                        # Retrieve statistics
-                        print(models_dict['LR'].statistics)
 
 
                     # Clean temp raw EEG stack 
