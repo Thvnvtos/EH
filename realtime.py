@@ -160,7 +160,7 @@ if __name__ == '__main__':
 
                     if model_type == '2D':
                         X_final = ((X_final - X_final.min()) / (X_final.max() - X_final.min()) * 255).astype(np.uint8)
-                        X_final = np.pad(X_final, ((0, 0), (2, 2), (0, 0), (0, 0)), mode='constant', constant_values=0)
+                        X_final =np.pad(X_final, ((0, 0), (2, 2), (0, 0), (0, 0)), mode='constant', constant_values=0)
 
                         out = np.argmax(models_dict[prediction].forward(X_final))
                     elif model_type == '2D_GAP':
