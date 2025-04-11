@@ -12,7 +12,7 @@ from keras.callbacks import ModelCheckpoint
 
 import matplotlib.pyplot as plt
 
-def train_evalute(config, X_train, Y_train, X_valid, Y_valid, model, csp=None, plot_graphs=True, train=True):
+def train_evalute(config, X_train, Y_train, X_valid, Y_valid, model, choose_on = 'val_acc', csp=None, plot_graphs=True, train=True):
     
     
 
@@ -50,10 +50,9 @@ def train_evalute(config, X_train, Y_train, X_valid, Y_valid, model, csp=None, p
 
 
     # Reshape input depending on model, 2D or 1D convs
-    if config.model_type == '2D':
+    if config.model_type in ['2D', '2D_GAP']:
         X_train = np.expand_dims(X_train, 3)
         X_valid = np.expand_dims(X_valid, 3)
-
     else:
         X_train = X_train.transpose(0, 2, 1)
         X_valid = X_valid.transpose(0, 2, 1)
@@ -71,15 +70,15 @@ def train_evalute(config, X_train, Y_train, X_valid, Y_valid, model, csp=None, p
 
 
     if train:
-        checkpoint_cb = ModelCheckpoint(os.path.join('saved_models', f'best_model_fold_fold.tf'), save_best_only=True, monitor='acc', mode='max', verbose=0, save_format='tf')
+        checkpoint_cb = ModelCheckpoint(os.path.join('saved_models', 'best_model_fold.tf'), save_best_only=True, monitor=choose_on, mode='max', verbose=0, save_format='tf')
         history = model.fit(X_train, Y_train, validation_data=(X_valid, Y_valid), epochs=config.epochs, batch_size=config.batch_size, 
-                            verbose=0, callbacks=[checkpoint_cb])
+                            verbose=1, callbacks=[checkpoint_cb])
     else:
         history = model.fit(X_train, Y_train, validation_data=(X_valid, Y_valid), epochs=config.epochs, batch_size=config.batch_size, 
-                            verbose=0)
+                            verbose=1)
 
     
-    best_val_acc = max(history.history['acc'])
+    best_val_acc = max(history.history['val_acc'])
 
 
 
@@ -101,6 +100,6 @@ def train_evalute(config, X_train, Y_train, X_valid, Y_valid, model, csp=None, p
         plt.pause(0.001)
 
     
-    #model = tf.keras.models.load_model(os.path.join('saved_models', f'best_model_fold_fold.tf'))
+    model = tf.keras.models.load_model(os.path.join('saved_models', 'best_model_fold.tf'))
 
     return model, csp, best_val_acc
