@@ -166,7 +166,7 @@ if __name__ == '__main__':
                     if direction == 'R': direction = 'right'
 
                     command = 'cls' if os.name == 'nt' else 'clear'
-                    os.system(command)
+                    #os.system(command)
                     print("===================================================================\n")
                     print(f"Final Prediction = {direction} | intermediary pred = {prediction}")
                     print("\n===================================================================\n")
