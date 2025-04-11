@@ -73,7 +73,7 @@ elif model_type == '2D':
 
 
 
-    if __name__ == '__main__':
+if __name__ == '__main__':
 
     print("================================= \n\n EEG Streaming and Classification Starting ...  \n\n\n")
     time.sleep(1)
