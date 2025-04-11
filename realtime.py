@@ -24,8 +24,8 @@ import requests
 
 
 
-server_ip =  "http://192.168.216.53:8000"
-model_type = '2D_GAP'
+server_ip =  "http://192.168.69.53:8000"
+model_type = '2D'
 
 models_naming = ['LR', 'UD', 'LU', 'LD', 'RU', 'RD']
 models_dict = {}
@@ -69,6 +69,7 @@ elif model_type == '2D':
     print("=> All models successfully mapped to Akida Chip \n")
 
 
+time.sleep(2)
 
 
 
@@ -157,8 +158,13 @@ if __name__ == '__main__':
 
 
                     direction = prediction[0]*(1 - out) + prediction[1]*(out)
+                    if direction == 'U': direction = 'up'
+                    elif direction == 'D': direction = 'down'
+                    if direction == 'L': direction = 'left'
+                    if direction == 'R': direction = 'right'
+
                     print(f"Final Prediction = {direction} | intermediary pred = {prediction}")
-                    #requests.post(f"{server_ip}/push_direction", json={"direction": direction, "confidence": 1.0})
+                    requests.post(f"{server_ip}/push_direction", json={"direction": direction, "confidence": 1.0})
 
 
 
