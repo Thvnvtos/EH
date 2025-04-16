@@ -7,7 +7,7 @@ import os, pickle
 
 #from network import  NetCNN2D_CSP, build_functional_cnn2D
 from mne.decoding import CSP
-from dataset_NewEEG import filter_rawEEG
+from dataset import filter_rawEEG
 
 #from config_NewEEG import Config
 #import dataset_NewEEG

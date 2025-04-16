@@ -15,7 +15,7 @@ class Config:
 
     random_seed = 0
     data_path = '../EEG_RAW_DATA_NEW'                                             
-
+    sampling_rate = 250
 
     # Choose from: 'CLeft', 'CRight', 'CUp' and 'CDown'
     # It's possible to choose any combination of classes such as:

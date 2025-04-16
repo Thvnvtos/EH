@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from mne.decoding import CSP
 
 # Local dataset handling module
-import dataset_NewEEG
+import dataset
 
 
 
@@ -50,8 +50,8 @@ def train_evalute(config, X_train, Y_train, X_valid, Y_valid, model, choose_on='
     """
 
     # Slice EEG epochs from original rep
-    X_train, Y_train = dataset_NewEEG.slice_EEG_epoch(config, X_train, Y_train)
-    X_valid, Y_valid = dataset_NewEEG.slice_EEG_epoch(config, X_valid, Y_valid)
+    X_train, Y_train = dataset.slice_EEG_epoch(config, X_train, Y_train)
+    X_valid, Y_valid = dataset.slice_EEG_epoch(config, X_valid, Y_valid)
 
     # Temporarily suppress CSP logs and stdout
     old_stdout = sys.stdout
