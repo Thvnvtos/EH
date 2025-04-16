@@ -1,31 +1,41 @@
 import tensorflow as tf
 
-#import pandas as pd
 import numpy as np
 import os, pickle
 
 
-#from network import  NetCNN2D_CSP, build_functional_cnn2D
 from mne.decoding import CSP
 from dataset import filter_rawEEG
-
-#from config_NewEEG import Config
-#import dataset_NewEEG
 
 
 from Serial_class import serial_class
 import threading
 import time
-import sys
-
+import sys, logging, warnings
 
 import akida
 import requests
 
+from queue import Queue
+
+
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+logging.getLogger('tensorflow').setLevel(logging.ERROR)
+warnings.filterwarnings('ignore')
+
+
+
+
+
 
 
 server_ip =  "http://192.168.69.53:8000"
-model_type = '2D'
+
+real_data = False
+
+# Select from ['akida' , 'cpu']
+model_type = 'cpu'
 
 models_naming = ['LR', 'UD', 'LU', 'LD', 'RU', 'RD']
 models_dict = {}
@@ -33,19 +43,19 @@ csp_dict = {}
 
 
 
-if model_type == '2D_GAP':
+if model_type == 'cpu':
     print("================================= \n\n Using CPU Mode ...  \n")
     for naming in models_naming:
         
-        loaded_model = tf.keras.models.load_model(os.path.join('saved_models', naming + '_gap.tf'))
-        with open(os.path.join('saved_models', 'csp' + naming + '_gap.pkl'), 'rb') as f:
+        loaded_model = tf.keras.models.load_model(os.path.join('saved_models', naming + '_cpu.tf'))
+        with open(os.path.join('saved_models', 'csp' + naming + '_cpu.pkl'), 'rb') as f:
             loaded_csp = pickle.load(f)
 
         models_dict[naming] = loaded_model
         csp_dict[naming] = loaded_csp
     print("=> All models successfully loaded \n")
 
-elif model_type == '2D':
+elif model_type == 'akida':
 
     print("================================= \n\n Using Akida Neuromorphic Mode ...  \n")
 
@@ -69,7 +79,28 @@ elif model_type == '2D':
 
     print("=> All models successfully mapped to Akida Chip \n")
 
+
+else:
+    print("Undefined Model Type ...")
+    exit()
+
+
 time.sleep(2)
+
+
+
+class serial_fake_data:
+    def __init__(self):
+        self.data = True
+        self.data_queue = Queue()
+
+
+        # Same size as a real EEG headset
+        self.sample_line = np.random.rand(4,16)
+        self.sample_ts = [0,1,2,3]
+
+    def fill_queue(self):
+        self.data_queue.put((self.sample_line,self.sample_ts))
 
 
 
@@ -81,11 +112,14 @@ if __name__ == '__main__':
 
 
     #Gestion port com
-    serial_flux = serial_class()
-    serial_flux.init_port()
+    if real_data: 
+        serial_flux = serial_class()
+        serial_flux.init_port()
 
-    thread_a = threading.Thread(target=serial_flux.reception, name='ta')
-    thread_a.start()
+        thread_a = threading.Thread(target=serial_flux.reception, name='ta')
+        thread_a.start()
+    else:
+        serial_flux = serial_fake_data()
 
     time.sleep(2)
 
@@ -99,18 +133,21 @@ if __name__ == '__main__':
 
     try:
         while True:
+            if not real_data:
+                serial_flux.fill_queue()
+
             while not serial_flux.data_queue.empty():
                 array_data_list , ts_data = serial_flux.data_queue.get()
 
                 for i in range(len(array_data_list)):
                     ts_value = ts_data[i] + (i*4) # Obtient le timestamp associe
-                    EEGraw_stack.append(array_data_list[i][:13])
+                    EEGraw_stack.append(array_data_list[i][:13])    
 
 
                 if len(EEGraw_stack) > 500:
-                    if model_type == '2D':
+                    if model_type == 'akida':
                         last_epoch_raw = EEGraw_stack[-250:]
-                    elif model_type == '2D_GAP':
+                    elif model_type == 'cpu':
                         last_epoch_raw = EEGraw_stack[-500:]
                     # Preprocess raw data
                     X = np.array(last_epoch_raw)
@@ -144,7 +181,7 @@ if __name__ == '__main__':
                         out_LR = np.argmax(models_dict['LR'].forward(X_LR))
                         out_UD = np.argmax(models_dict['UD'].forward(X_UD))
                     
-                    elif model_type == '2D_GAP':
+                    elif model_type == 'cpu':
                         out_LR = np.argmax(models_dict['LR'](X_LR))
                         out_UD = np.argmax(models_dict['UD'](X_UD))
 
@@ -157,7 +194,7 @@ if __name__ == '__main__':
                     X_final = csp_dict[prediction].transform(X_final)
                     X_final = np.expand_dims(X_final, 3)
 
-                    if model_type == '2D':
+                    if model_type == 'akida':
                         X_final = ((X_final - X_final.min()) / (X_final.max() - X_final.min()) * 255).astype(np.uint8)
                         X_final =np.pad(X_final, ((0, 0), (2, 2), (0, 0), (0, 0)), mode='constant', constant_values=0)
 
@@ -171,7 +208,7 @@ if __name__ == '__main__':
                         out = np.argmax(pred)
                               
                     
-                    elif model_type == '2D_GAP':
+                    elif model_type == 'cpu':
                         out = np.argmax(models_dict[prediction](X_final))
 
 
@@ -187,7 +224,7 @@ if __name__ == '__main__':
                     #print("===================================================================\n")
                     print(f"Final Prediction = {direction} | intermediary pred = {prediction}")
                     #print("\n===================================================================\n")
-                    requests.post(f"{server_ip}/push_direction", json={"direction": direction, "confidence": 1.0})
+                    #requests.post(f"{server_ip}/push_direction", json={"direction": direction, "confidence": 1.0})
 
 
 
@@ -200,5 +237,6 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
         # Arreter le thread proprement lors d'une interruption (Ctrl + C)
-        serial_flux.terminate() # Fermeture de la connexion EEG
-        thread_a.join()
+        if real_data:
+            serial_flux.terminate() # Fermeture de la connexion EEG
+            thread_a.join()
