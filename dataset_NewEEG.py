@@ -5,7 +5,7 @@ import pandas as pd
 
 
 import utils
-from config_NewEEG import Config
+from config import Config
 
 
 
