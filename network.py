@@ -79,7 +79,7 @@ class NetCNN2D_CSP(keras.Model):
         self.n_classes = n_classes
 
         self.cnn1 = keras.Sequential(
-            [
+            [  
                 keras.layers.Conv2D(filters=8, kernel_size=(7,7), strides=(3,3), padding='same'),
                 keras.layers.BatchNormalization(),
                 keras.layers.ReLU(max_value=1000.0),
