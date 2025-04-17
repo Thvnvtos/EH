@@ -16,8 +16,7 @@ This repository contains the code developped by Neurobus for the Enhanced Human 
 - [Acknowledgements](#acknowledgements)
 ---
 
-## ✨ Features
-
+## Features
 
 - Pre-training and evaluation of Akida and CPU/GPU models, saving models and CSP objects.  
 - Dataset pre-processing allowing for creating datasets of any possible combination of classes and for n-way classification
