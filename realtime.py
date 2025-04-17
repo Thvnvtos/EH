@@ -27,9 +27,13 @@ warnings.filterwarnings('ignore')
 
 
 
+# The POST request server ip address and port
 server_ip =  "http://192.168.69.53:8000"
 
+# You can use simulated fake data if set to False
 using_real_data = False
+
+# You can test using the saved Akida models on CPU
 using_chip = False
 
 
@@ -123,7 +127,7 @@ if __name__ == '__main__':
                     X = np.expand_dims(X, 0)    # X shape = (N, Channels, Time) = (1, 13, window_size)
 
 
-                    # Returns predicted direction using an abstracted strategy 
+                    # Returns predicted direction using a modular strategy 
                     direction = strategy.predict(X)
 
                     
